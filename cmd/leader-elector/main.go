@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/kkosmrli/leader-elector/pkg/election"
 	"k8s.io/klog"
-	"net/http"
 )
 
 var leader string
@@ -14,7 +15,6 @@ func leaderHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -26,5 +26,5 @@ func main() {
 	go election.NewElection(ctx, callback)
 
 	http.HandleFunc("/", leaderHandler)
-	http.ListenAndServe("http://localhost:4040", nil)
+	klog.Fatal(http.ListenAndServe(":4040", nil))
 }

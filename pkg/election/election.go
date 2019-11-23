@@ -19,11 +19,11 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 	namespace := "default"
 	resourceLockName := "test"
 
-	// We only care for in ClusterConfig
+	// We only care for in ClusterConfig atm
 	config, err := rest.InClusterConfig()
 
 	if err != nil {
-		panic(err.Error())
+		klog.Fatalf("Error getting cluster config: %s", err.Error())
 	}
 
 	client := kubernetes.NewForConfigOrDie(config)
@@ -33,7 +33,7 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 
 	if err != nil {
 		// could not create resourcelock
-		panic(err.Error())
+		klog.Fatalf("Could not create resource lock: %s", err.Error())
 	}
 
 	callbacks := leaderelection.LeaderCallbacks{
@@ -41,7 +41,7 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 			// Whaat to do with ctx here??
 		},
 		OnStoppedLeading: func() {
-			klog.Infof("leader lost: %s", id)
+			klog.Infof("Leader lost: %s", id)
 		},
 		OnNewLeader: func(identity string) {
 			callback(identity)
