@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: election-example
+spec:
+  selector:
+    matchLabels:
+      app: election-example
+  template:
+    metadata:
+      labels:
+        app: election-example
+    spec:
+      containers:
+      - name: test-container
+        image: k8s.gcr.io/busybox
+        command: ["sh", "-c"]
+        args:
+          - while true; do
+            echo -en '\n';
+            printenv MY_POD_NAME;
+            sleep 10;
+            done;
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+      - name: elector-sidecar
+        image: kkosmrli/leader-elector:test
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 4040

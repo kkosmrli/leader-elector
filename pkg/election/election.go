@@ -29,7 +29,7 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 	client := kubernetes.NewForConfigOrDie(config)
 
 	// Try config map lock for now
-	lock, err := resourcelock.New("ConfigMapsResourceLock", namespace, resourceLockName, client.CoreV1(), client.CoordinationV1(), resourcelock.ResourceLockConfig{Identity: id})
+	lock, err := resourcelock.New("configmaps", namespace, resourceLockName, client.CoreV1(), client.CoordinationV1(), resourcelock.ResourceLockConfig{Identity: id})
 
 	if err != nil {
 		// could not create resourcelock
