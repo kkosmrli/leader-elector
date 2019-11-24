@@ -1,8 +1,10 @@
-# Leader-Elector
+# Leader Elector
 
-This project aims to provide a simple leader election sidecar container for Kubernetes based on the recent client-go package. 
+A simple leader election sidecar container for Kubernetes based on the recent [client-go](https://github.com/kubernetes/client-go) library. It aims to provide and alternative to the widely used but outdated `election` component of [kubernetes/contrib](https://github.com/kubernetes-retired/contrib).
 
-## To be implemented ...
+## Work in Progress
 * Configuration via flags
 * Configurable lock type (LeaseLock, ConfigMap, Endpoint)
-* Example Deployment
+
+## Usage
+...

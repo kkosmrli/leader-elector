@@ -11,7 +11,7 @@ import (
 var leader string
 
 func leaderHandler(res http.ResponseWriter, req *http.Request) {
-
+	// ToDo: Implement me
 }
 
 func main() {
