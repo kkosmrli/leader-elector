@@ -39,3 +39,5 @@ spec:
             cpu: "100m"
         ports:
         - containerPort: 4040
+  replicas: 2 
+    

@@ -2,9 +2,9 @@ package election
 
 import (
 	"context"
+	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection"
@@ -14,8 +14,8 @@ import (
 
 // NewElection creates and runs a new leader election
 func NewElection(ctx context.Context, callback func(leader string)) {
-
-	id := uuid.New().String()
+	id := os.Getenv("HOSTNAME")
+	//id := uuid.New().String()
 	namespace := "default"
 	resourceLockName := "test"
 
@@ -57,4 +57,5 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 	}
 
 	leaderelection.RunOrDie(ctx, conf)
+	klog.Info("Exiting election loop.")
 }

@@ -19,7 +19,7 @@ func main() {
 	defer cancel()
 
 	callback := func(name string) {
-		klog.Infof("Currently leading: %s", leader)
+		klog.Infof("Currently leading: %s", name)
 		leader = name
 	}
 
