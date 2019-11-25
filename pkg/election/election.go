@@ -13,10 +13,8 @@ import (
 )
 
 // NewElection creates and runs a new leader election
-func NewElection(ctx context.Context, callback func(leader string)) {
+func NewElection(ctx context.Context, namespace string, resourceLockName string, callback func(leader string)) {
 	id := os.Getenv("HOSTNAME")
-	namespace := "default"
-	resourceLockName := "test"
 
 	// We only care for inClusterConfig
 	config, err := rest.InClusterConfig()
