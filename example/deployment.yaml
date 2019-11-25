@@ -13,12 +13,12 @@ spec:
     spec:
       containers:
       - name: test-container
-        image: k8s.gcr.io/busybox
+        image: pstauffer/curl:v1.0.3
         command: ["sh", "-c"]
         args:
           - while true; do
             echo -en '\n';
-            printenv MY_POD_NAME;
+            curl -s http://localhost:4040;
             sleep 10;
             done;
         env:
