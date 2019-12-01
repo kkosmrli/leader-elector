@@ -14,6 +14,7 @@ var (
 	electionName string
 	namespace    string
 	locktype     string
+	port         string
 	leader       Leader
 )
 
@@ -36,6 +37,7 @@ func parseFlags() {
 	flag.StringVar(&electionName, "election", "default", "Name of this election")
 	flag.StringVar(&namespace, "namespace", "default", "Namespace of this election")
 	flag.StringVar(&locktype, "locktype", "configmaps", "Resource lock type, must be one of the following: configmaps, endpoints, leases")
+	flag.StringVar(&port, "port", "4040", "Port on which to query the leader")
 	flag.Parse()
 }
 
@@ -51,5 +53,5 @@ func main() {
 	go election.NewElection(ctx, electionName, namespace, callback)
 
 	http.HandleFunc("/", leaderHandler)
-	klog.Fatal(http.ListenAndServe(":4040", nil))
+	klog.Fatal(http.ListenAndServe(":"+port, nil))
 }
