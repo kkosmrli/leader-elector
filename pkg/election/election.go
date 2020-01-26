@@ -13,10 +13,8 @@ import (
 )
 
 // NewElection creates and runs a new leader election
-func NewElection(ctx context.Context, callback func(leader string)) {
+func NewElection(ctx context.Context, namespace string, resourceLockName string, lockType string, callback func(leader string)) {
 	id := os.Getenv("HOSTNAME")
-	namespace := "default"
-	resourceLockName := "test"
 
 	// We only care for inClusterConfig
 	config, err := rest.InClusterConfig()
@@ -28,7 +26,7 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 	client := kubernetes.NewForConfigOrDie(config)
 
 	// Create the lock resource
-	lock, err := resourcelock.New("configmaps", namespace, resourceLockName, client.CoreV1(), client.CoordinationV1(), resourcelock.ResourceLockConfig{Identity: id})
+	lock, err := resourcelock.New(lockType, namespace, resourceLockName, client.CoreV1(), client.CoordinationV1(), resourcelock.ResourceLockConfig{Identity: id})
 
 	if err != nil {
 		klog.Fatalf("Could not create resource lock: %s", err.Error())
@@ -36,7 +34,7 @@ func NewElection(ctx context.Context, callback func(leader string)) {
 
 	callbacks := leaderelection.LeaderCallbacks{
 		OnStartedLeading: func(ctx context.Context) {
-			// ToDo: return own id to callback?
+			callback(id)
 		},
 		OnStoppedLeading: func() {
 			klog.Infof("Leader lost: %s", id)
