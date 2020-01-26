@@ -42,6 +42,7 @@ func parseFlags() {
 }
 
 func main() {
+	parseFlags()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -50,7 +51,7 @@ func main() {
 		leader = Leader{name}
 	}
 
-	go election.NewElection(ctx, electionName, namespace, callback)
+	go election.NewElection(ctx, namespace, electionName, locktype, callback)
 
 	http.HandleFunc("/", leaderHandler)
 	klog.Fatal(http.ListenAndServe(":"+port, nil))

@@ -39,5 +39,9 @@ spec:
             cpu: "100m"
         ports:
         - containerPort: 4040
+        args:
+          - "--election=example-election"
+          - "--namespace=default"
+          - "--port=4040"
   replicas: 2 
     
