@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"flag"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/kkosmrli/leader-elector/pkg/election"
 	"k8s.io/klog"
@@ -43,16 +47,40 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
+
+	// configuring context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// configuring signal handling
+	terminationSignal := make(chan os.Signal, 1)
+	signal.Notify(terminationSignal, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-terminationSignal
+		klog.Infoln("Received termination signal, shutting down")
+		cancel()
+	}()
+
+	// configuring HTTP server
+	http.HandleFunc("/", leaderHandler)
+	server := &http.Server{Addr: ":" + port, Handler: nil}
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			klog.Fatal(err)
+		}
+	}()
+
+	// configuring Leader Election loop
 	callback := func(name string) {
 		klog.Infof("Currently leading: %s", name)
 		leader = Leader{name}
 	}
+	election.NewElection(ctx, namespace, electionName, locktype, callback)
 
-	go election.NewElection(ctx, namespace, electionName, locktype, callback)
-
-	http.HandleFunc("/", leaderHandler)
-	klog.Fatal(http.ListenAndServe(":"+port, nil))
+	// gracefully stop HTTP server
+	srvCtx, srvCancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer srvCancel()
+	if err := server.Shutdown(srvCtx); err != nil {
+		klog.Fatal(err)
+	}
 }
