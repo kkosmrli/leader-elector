@@ -12,8 +12,18 @@ import (
 	"k8s.io/klog"
 )
 
-// NewElection creates and runs a new leader election
-func NewElection(ctx context.Context, namespace string, resourceLockName string, lockType string, callback func(leader string)) {
+type Config struct {
+	LockType      string
+	LockName      string
+	LockNamespace string
+	RetryPeriod   time.Duration
+	LeaseDuration time.Duration
+	RenewDeadline time.Duration
+	Callback      func(leader string)
+}
+
+// Run creates and runs a new leader election
+func Run(ctx context.Context, cfg Config) {
 	id := os.Getenv("HOSTNAME")
 
 	// We only care for inClusterConfig
@@ -26,7 +36,13 @@ func NewElection(ctx context.Context, namespace string, resourceLockName string,
 	client := kubernetes.NewForConfigOrDie(config)
 
 	// Create the lock resource
-	lock, err := resourcelock.New(lockType, namespace, resourceLockName, client.CoreV1(), client.CoordinationV1(), resourcelock.ResourceLockConfig{Identity: id})
+	lock, err := resourcelock.New(
+		cfg.LockType,
+		cfg.LockNamespace,
+		cfg.LockName,
+		client.CoreV1(),
+		client.CoordinationV1(),
+		resourcelock.ResourceLockConfig{Identity: id})
 
 	if err != nil {
 		klog.Fatalf("Could not create resource lock: %s", err.Error())
@@ -34,25 +50,24 @@ func NewElection(ctx context.Context, namespace string, resourceLockName string,
 
 	callbacks := leaderelection.LeaderCallbacks{
 		OnStartedLeading: func(ctx context.Context) {
-			callback(id)
+			cfg.Callback(id)
 		},
 		OnStoppedLeading: func() {
 			klog.Infof("Leader lost: %s", id)
 		},
 		OnNewLeader: func(identity string) {
-			callback(identity)
+			cfg.Callback(identity)
 		},
 	}
 
-	// ToDo: Revisit values
-	conf := leaderelection.LeaderElectionConfig{
+	leaderElectionConf := leaderelection.LeaderElectionConfig{
 		Lock:          lock,
-		LeaseDuration: time.Second * 15,
-		RenewDeadline: time.Second * 10,
-		RetryPeriod:   time.Second * 2,
+		LeaseDuration: cfg.LeaseDuration,
+		RenewDeadline: cfg.RenewDeadline,
+		RetryPeriod:   cfg.RetryPeriod,
 		Callbacks:     callbacks,
 	}
 
-	leaderelection.RunOrDie(ctx, conf)
+	leaderelection.RunOrDie(ctx, leaderElectionConf)
 	klog.Info("Exiting election loop.")
 }
