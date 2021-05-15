@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: election-example
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: election-example
@@ -11,6 +12,7 @@ spec:
       labels:
         app: election-example
     spec:
+      serviceAccountName: election-example
       containers:
       - name: test-container
         image: pstauffer/curl:v1.0.3
@@ -31,7 +33,7 @@ spec:
             memory: "64Mi"
             cpu: "100m"
       - name: elector-sidecar
-        image: kkosmrli/leader-elector:test
+        image: kkosmrli/leader-elector:release-0.1.1
         imagePullPolicy: Always
         resources:
           limits:
@@ -42,6 +44,5 @@ spec:
         args:
           - "--election=example-election"
           - "--namespace=default"
+          - "--locktype=configmaps"
           - "--port=4040"
-  replicas: 2 
-    
