@@ -16,13 +16,13 @@ import (
 
 var (
 	args struct {
-		LockName      string `arg:"--election" default:"default" help:"Name of this election"`
-		Namespace     string `default:"default" help:"Namespace of this election"`
-		LockType      string `default:"configmaps" help:"Resource lock type, must be one of the following: configmaps, endpoints, leases"`
-		RenewDeadline time.Duration `arg:"--renew-deadline" default:"10s" help:"Duration that the acting leader will retry refreshing leadership before giving up"`
-		RetryPeriod   time.Duration `arg:"--retry-period" default:"2s" help:"Duration between each action retry"`
-		LeaseDuration time.Duration `arg:"--lease-duration" default:"15s" help:"Duration that non-leader candidates will wait after observing a leadership renewal until attempting to acquire leadership of a led but unrenewed leader slot"`
-		Port          string `default:"4040" help:"Port on which to query the leader"`
+		LockName      string `arg:"--election,env:ELECTION_NAME" default:"default" help:"Name of this election"`
+		Namespace     string `arg:"env:ELECTION_NAMESPACE" default:"default" help:"Namespace of this election"`
+		LockType      string `arg:"env:ELECTION_TYPE" default:"configmaps" help:"Resource lock type, must be one of the following: configmaps, endpoints, leases"`
+		RenewDeadline time.Duration `arg:"--renew-deadline,env:ELECTION_RENEW_DEADLINE" default:"10s" help:"Duration that the acting leader will retry refreshing leadership before giving up"`
+		RetryPeriod   time.Duration `arg:"--retry-period,env:ELECTION_RETRY_PERIOD" default:"2s" help:"Duration between each action retry"`
+		LeaseDuration time.Duration `arg:"--lease-duration,env:ELECTION_LEASE_DURATION" default:"15s" help:"Duration that non-leader candidates will wait after observing a leadership renewal until attempting to acquire leadership of a led but unrenewed leader slot"`
+		Port          string `arg:"env:ELECTION_PORT" default:"4040" help:"Port on which to query the leader"`
 	}
 	leader Leader
 )
