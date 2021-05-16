@@ -3,26 +3,28 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/alexflint/go-arg"
 	"github.com/kkosmrli/leader-elector/pkg/election"
 	"k8s.io/klog"
 )
 
 var (
-	electionName      string
-	electionNamespace string
-	lockType          string
-	renewDeadline     time.Duration
-	retryPeriod       time.Duration
-	leaseDuration     time.Duration
-	port              string
-	leader            Leader
+	args struct {
+		LockName      string `arg:"--election,env:ELECTION_NAME" default:"default" help:"Name of this election"`
+		Namespace     string `arg:"env:ELECTION_NAMESPACE" default:"default" help:"Namespace of this election"`
+		LockType      string `arg:"env:ELECTION_TYPE" default:"configmaps" help:"Resource lock type, must be one of the following: configmaps, endpoints, leases"`
+		RenewDeadline time.Duration `arg:"--renew-deadline,env:ELECTION_RENEW_DEADLINE" default:"10s" help:"Duration that the acting leader will retry refreshing leadership before giving up"`
+		RetryPeriod   time.Duration `arg:"--retry-period,env:ELECTION_RETRY_PERIOD" default:"2s" help:"Duration between each action retry"`
+		LeaseDuration time.Duration `arg:"--lease-duration,env:ELECTION_LEASE_DURATION" default:"15s" help:"Duration that non-leader candidates will wait after observing a leadership renewal until attempting to acquire leadership of a led but unrenewed leader slot"`
+		Port          string `arg:"env:ELECTION_PORT" default:"4040" help:"Port on which to query the leader"`
+	}
+	leader Leader
 )
 
 // Leader contains the name of the current leader of this election
@@ -40,23 +42,8 @@ func leaderHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write(data)
 }
 
-func parseFlags() {
-	flag.StringVar(&electionName, "election", "default", "Name of the resource used for this election")
-	flag.StringVar(&electionNamespace, "namespace", "default", "Namespace of the resource used for this election")
-	flag.StringVar(&lockType, "locktype", "configmaps",
-		"Resource lock type, must be one of the following: configmaps, endpoints, leases")
-	flag.DurationVar(&renewDeadline, "renew-deadline", 10*time.Second,
-		"Duration that the acting leader will retry refreshing leadership before giving up")
-	flag.DurationVar(&leaseDuration, "lease-duration", 15*time.Second,
-		`Duration that non-leader candidates will wait after observing a leadership
-		renewal until attempting to acquire leadership of a led but unrenewed leader slot`)
-	flag.DurationVar(&retryPeriod, "retry-period", 2*time.Second, "Duration between each action retry")
-	flag.StringVar(&port, "port", "4040", "Port on which to query the leader")
-	flag.Parse()
-}
-
 func main() {
-	parseFlags()
+	arg.MustParse(&args)
 
 	// configuring context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -73,7 +60,7 @@ func main() {
 
 	// configuring HTTP server
 	http.HandleFunc("/", leaderHandler)
-	server := &http.Server{Addr: ":" + port, Handler: nil}
+	server := &http.Server{Addr: ":" + args.Port, Handler: nil}
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			klog.Fatal(err)
@@ -87,12 +74,12 @@ func main() {
 	}
 
 	electionConfig := election.Config{
-		LockName:      electionName,
-		LockNamespace: electionNamespace,
-		LockType:      lockType,
-		RenewDeadline: renewDeadline,
-		RetryPeriod:   retryPeriod,
-		LeaseDuration: leaseDuration,
+		LockName:      args.LockName,
+		LockNamespace: args.Namespace,
+		LockType:      args.LockType,
+		RenewDeadline: args.RenewDeadline,
+		RetryPeriod:   args.RetryPeriod,
+		LeaseDuration: args.LeaseDuration,
 		Callback:      callback,
 	}
 	election.Run(ctx, electionConfig)

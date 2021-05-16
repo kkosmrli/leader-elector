@@ -5,13 +5,15 @@ A simple leader election sidecar container for Kubernetes based on the recent [c
 
 ## Configuration Flags
 
-* `election` - name of the election and the corresponding lock resource.
-* `namespace` - the Kubernetes namespace to run the election in.
-* `locktype` - the leaselock resource type to use for this deployment. Supported lock types are:
+The following arguments can be passed on the command line, or by setting the environment variable named in brackets.
+
+* `election` - name of the election and the corresponding lock resource (ELECTION_NAME).
+* `namespace` - the Kubernetes namespace to run the election in (ELECTION_NAMESPACE).
+* `locktype` - the leaselock resource type to use for this deployment (ELECTION_TYPE). Supported lock types are:
   * `configmaps` - default
   * `leases`
   * `endpoints`
-* `port` - the port on which the election sidecar can be queried.
+* `port` - the port on which the election sidecar can be queried (ELECTION_PORT).
 
 ## Example
 A working example deployment can be found under `example/deployment.yaml`
