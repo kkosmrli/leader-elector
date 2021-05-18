@@ -33,7 +33,7 @@ spec:
             memory: "64Mi"
             cpu: "100m"
       - name: elector-sidecar
-        image: kkosmrli/leader-elector:release-0.1.1
+        image: kkosmrli/leader-elector:0.3.0
         imagePullPolicy: Always
         resources:
           limits:
