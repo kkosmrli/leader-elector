@@ -18,7 +18,4 @@ The following arguments can be passed on the command line, or by setting the env
 ## Example
 A working example deployment can be found under `example/deployment.yaml`
 
-## Work in Progress
-* Configurable lock type (LeaseLock, ConfigMap, Endpoint)
-* Make configuration fail safe
 
